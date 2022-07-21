@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">nix-android-final-project</string>
+    <string name="header">VIRTUAL COFFEE MACHINE</string>
+    <string name="infoButton">SHOW CURRENT RESOURCES</string>
+    <string name="makeCoffeeLabel">Make coffee:</string>
+    <string name="espressoButton">ESPRESSO</string>
+    <string name="cappuccinoButton">CAPPUCCINO</string>
+    <string name="latteButton">LATTE</string>
+    <string name="fillResourcesLabel">Fill resources</string>
+    <string name="waterLabel">Water</string>
+    <string name="milkLabel">Milk</string>
+    <string name="coffeeBeansLabel">Coffee beans</string>
+    <string name="paperCupsLabel">Paper cups</string>
+    <string name="fillButton">FILL</string>
+    <string name="takeMoneyButton">TAKE MONEY</string>
 </resources>
