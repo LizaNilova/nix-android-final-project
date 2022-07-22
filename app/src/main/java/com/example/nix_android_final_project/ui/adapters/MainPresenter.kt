@@ -1,14 +1,18 @@
 package com.example.nix_android_final_project.ui.adapters
 
-import android.widget.Toast
-import com.example.nix_android_final_project.core.CoffeeMachineService
 import com.example.nix_android_final_project.core.entities.CoffeeTypes
-import com.example.nix_android_final_project.core.entities.Data
 import com.example.nix_android_final_project.core.entities.Resources
 import com.example.nix_android_final_project.core.entities.Response
+import com.example.nix_android_final_project.core.interactors.FillResourcesInteractor
+import com.example.nix_android_final_project.core.interactors.GetCoffeeMachineInfoInteractor
+import com.example.nix_android_final_project.core.interactors.MakeSomeCoffeeInteractor
+import com.example.nix_android_final_project.core.interactors.TakeMoneyInteractor
 
 class MainPresenter(
-    private val model: CoffeeMachineService
+    private val makeSomeCoffeeInteractor: MakeSomeCoffeeInteractor,
+    private val fillResourcesInteractor: FillResourcesInteractor,
+    private val takeMoneyInteractor: TakeMoneyInteractor,
+    private val getCoffeeMachineInfoInteractor: GetCoffeeMachineInfoInteractor
 ) : Contract.Presenter {
 
     private var view: Contract.View? = null
@@ -23,7 +27,7 @@ class MainPresenter(
     }
 
     fun showInfoModel() {
-        view?.showInfo(model.info())
+        view?.showInfo(getCoffeeMachineInfoInteractor.invoke())
     }
 
     private fun onViewAttached() {
@@ -31,28 +35,18 @@ class MainPresenter(
     }
 
     fun buyCoffee(type: CoffeeTypes) {
-        view?.showMessage(model.makeSomeCoffee(type))
+        view?.showMessage(makeSomeCoffeeInteractor.invoke(type))
     }
 
-    fun takeCommand(com : Response) {
-        when (com.answer) {
-            "fill" -> view?.showMessage(fillResources(view?.enterResourcesToFill()))
-            "take" -> view?.showMessage(model.takeMoney())
-            else -> view?.showMessage(Response("Wrong name of command ..."))
-        }
+    fun takeMoneyFromCoffeeMachine(): Response {
+        return takeMoneyInteractor.invoke()
     }
 
-    private fun fillResources(resources: Resources?) : Response {
-        if (resources != null){
-            model.fillResources(resources)
-            if (resources.water == 0
-                && resources.milk == 0
-                && resources.coffeeBeans == 0
-                && resources.cups == 0){
-                return Response("Nothing to fill!")
-            }
-            return Response("Successfully filled!")
+    fun fillResources(resources: Resources?): Response {
+        return if (resources != null) {
+            fillResourcesInteractor.invoke(resources)
+        } else {
+            Response("Something wrong...")
         }
-        return Response("Something wrong...")
     }
 }

@@ -14,8 +14,6 @@ interface Contract {
         fun showInfo(info: Resources)
 
         fun showMessage(message : Response)
-
-        fun enterResourcesToFill() : Resources
     }
 
     interface Presenter {
