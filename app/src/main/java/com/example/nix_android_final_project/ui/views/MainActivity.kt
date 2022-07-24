@@ -8,23 +8,32 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.nix_android_final_project.R
 import com.example.nix_android_final_project.core.entities.CoffeeTypes
+import com.example.nix_android_final_project.core.entities.Payment
 import com.example.nix_android_final_project.core.entities.Resources
 import com.example.nix_android_final_project.core.entities.Response
-import com.example.nix_android_final_project.core.interactors.FillResourcesInteractor
-import com.example.nix_android_final_project.core.interactors.GetCoffeeMachineInfoInteractor
-import com.example.nix_android_final_project.core.interactors.MakeSomeCoffeeInteractor
-import com.example.nix_android_final_project.core.interactors.TakeMoneyInteractor
+import com.example.nix_android_final_project.core.interactors.*
+import com.example.nix_android_final_project.data.mappers.NetworkPaymentToPaymentMapper
+import com.example.nix_android_final_project.data.network.Network
 import com.example.nix_android_final_project.data.repositories.FakeRepositoryImplementation
+import com.example.nix_android_final_project.data.repositories.PaymentRepositoryImplementation
 import com.example.nix_android_final_project.ui.adapters.Contract
 import com.example.nix_android_final_project.ui.adapters.MainPresenter
 
 class MainActivity : AppCompatActivity(), Contract.View {
-    override var presenter = MainPresenter(
-        MakeSomeCoffeeInteractor(FakeRepositoryImplementation()),
-        FillResourcesInteractor(FakeRepositoryImplementation()),
-        TakeMoneyInteractor(FakeRepositoryImplementation()),
-        GetCoffeeMachineInfoInteractor(FakeRepositoryImplementation())
-    )
+    private val presenter by lazy {
+        val repository = PaymentRepositoryImplementation(
+            Network.api,
+            NetworkPaymentToPaymentMapper()
+        )
+
+        MainPresenter(
+            MakeSomeCoffeeInteractor(FakeRepositoryImplementation()),
+            FillResourcesInteractor(FakeRepositoryImplementation()),
+            TakeMoneyInteractor(FakeRepositoryImplementation()),
+            GetCoffeeMachineInfoInteractor(FakeRepositoryImplementation()),
+            ExchangeCurrencyInteractor(repository)
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,15 +52,55 @@ class MainActivity : AppCompatActivity(), Contract.View {
     }
 
     fun makeEspressoButtonClick(view: View) {
-        presenter.buyCoffee(CoffeeTypes.ESPRESSO)
+        orderCoffee(CoffeeTypes.ESPRESSO)
+    }
+
+    private fun orderCoffee(coffee : CoffeeTypes) {
+        val items = arrayOf("UAH - Ukrainian hryvnia", "JPY - Japanese yen", "EUR - Euro", "KZT - Kazakh tenge")
+        val builder = AlertDialog.Builder(this)
+        with(builder)
+        {
+            setTitle("Choose Currency")
+            val response = presenter.buyCoffee(coffee)
+            if (response.answer != "Sorry, not enough water!"
+                && response.answer != "Sorry, not enough milk!"
+                && response.answer != "Sorry, not enough coffee beans!"
+                && response.answer != "Sorry, not enough paper cups!") {
+                setItems(items) { dialog, which ->
+                    when(items[which]){
+                        "UAH - Ukrainian hryvnia" -> exchangePayment("UAH", coffee)
+                        "JPY - Japanese yen" -> exchangePayment("JPY", coffee)
+                        "EUR - Euro" -> exchangePayment("EUR", coffee)
+                        "KZT - Kazakh tenge" -> exchangePayment("KZT", coffee)
+                        else -> showMessage(Response("Something went wrong..."))
+                    }
+                    showMessage(response)
+                }
+                setNegativeButton("CANCEL"){ _, _ ->
+                    null
+                }
+                show()
+            } else {
+                showMessage(response)
+            }
+        }
+    }
+
+    private fun exchangePayment(str : String, coffee : CoffeeTypes){
+        val payment = Payment(
+            amount = coffee.cost.toFloat(),
+            currency = str
+        )
+        presenter.exchangePayment(payment)
+
     }
 
     fun makeCappuccinoButtonClick(view: View) {
-        presenter.buyCoffee(CoffeeTypes.CAPPUCCINO)
+        orderCoffee(CoffeeTypes.CAPPUCCINO)
     }
 
     fun makeLatteButtonClick(view: View) {
-        presenter.buyCoffee(CoffeeTypes.LATTE)
+        orderCoffee(CoffeeTypes.LATTE)
     }
 
     fun takeMoneyButtonClick(view: View) {

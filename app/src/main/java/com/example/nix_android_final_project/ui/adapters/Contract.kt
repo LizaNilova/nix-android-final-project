@@ -9,8 +9,6 @@ interface Contract {
 
     interface View {
 
-        var presenter: MainPresenter
-
         fun showInfo(info: Resources)
 
         fun showMessage(message : Response)
