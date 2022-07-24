@@ -12,6 +12,8 @@ interface Contract {
         fun showInfo(info: Resources)
 
         fun showMessage(message : Response)
+
+        fun takeLastPayment(response: Response)
     }
 
     interface Presenter {

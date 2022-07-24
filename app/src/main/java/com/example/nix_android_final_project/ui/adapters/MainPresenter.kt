@@ -10,7 +10,8 @@ class MainPresenter(
     private val fillResourcesInteractor: FillResourcesInteractor,
     private val takeMoneyInteractor: TakeMoneyInteractor,
     private val getCoffeeMachineInfoInteractor: GetCoffeeMachineInfoInteractor,
-    private val exchangeCurrencyInteractor: ExchangeCurrencyInteractor
+    private val exchangeCurrencyInteractor: ExchangeCurrencyInteractor,
+    private val loadPaymentInteractor: LoadPaymentInteractor
 ) : Contract.Presenter, CoroutineScope {
 
     private var view: Contract.View? = null
@@ -56,6 +57,15 @@ class MainPresenter(
             val response = exchangeCurrencyInteractor(payment)
             withContext(Dispatchers.Main) {
                 view?.showMessage(response)
+            }
+        }
+    }
+
+    fun loadPayment(){
+        launch {
+            val response = loadPaymentInteractor()
+            withContext(Dispatchers.Main) {
+                view?.takeLastPayment(response)
             }
         }
     }
