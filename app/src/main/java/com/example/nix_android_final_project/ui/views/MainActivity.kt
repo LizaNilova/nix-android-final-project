@@ -4,15 +4,16 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.nix_android_final_project.R
-import com.example.nix_android_final_project.core.entities.CoffeeTypes
-import com.example.nix_android_final_project.core.entities.Payment
-import com.example.nix_android_final_project.core.entities.Resources
-import com.example.nix_android_final_project.core.entities.Response
+import com.example.nix_android_final_project.core.entities.*
 import com.example.nix_android_final_project.core.interactors.*
+import com.example.nix_android_final_project.data.database.Database
+import com.example.nix_android_final_project.data.mappers.DatabasePaymentToPaymentMapper
 import com.example.nix_android_final_project.data.mappers.NetworkPaymentToPaymentMapper
+import com.example.nix_android_final_project.data.mappers.PaymentToDatabasePaymentMapper
 import com.example.nix_android_final_project.data.network.Network
 import com.example.nix_android_final_project.data.repositories.FakeRepositoryImplementation
 import com.example.nix_android_final_project.data.repositories.PaymentRepositoryImplementation
@@ -23,7 +24,10 @@ class MainActivity : AppCompatActivity(), Contract.View {
     private val presenter by lazy {
         val repository = PaymentRepositoryImplementation(
             Network.api,
-            NetworkPaymentToPaymentMapper()
+            NetworkPaymentToPaymentMapper(),
+            Database.provideDao(baseContext),
+            DatabasePaymentToPaymentMapper(),
+            PaymentToDatabasePaymentMapper()
         )
 
         MainPresenter(
@@ -31,7 +35,8 @@ class MainActivity : AppCompatActivity(), Contract.View {
             FillResourcesInteractor(FakeRepositoryImplementation()),
             TakeMoneyInteractor(FakeRepositoryImplementation()),
             GetCoffeeMachineInfoInteractor(FakeRepositoryImplementation()),
-            ExchangeCurrencyInteractor(repository)
+            ExchangeCurrencyInteractor(repository),
+            LoadPaymentInteractor(repository)
         )
     }
 
@@ -39,6 +44,7 @@ class MainActivity : AppCompatActivity(), Contract.View {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         presenter.attach(this)
+        presenter.loadPayment()
     }
 
     override fun showInfo(info: Resources) {
@@ -93,6 +99,15 @@ class MainActivity : AppCompatActivity(), Contract.View {
         )
         presenter.exchangePayment(payment)
 
+    }
+
+    fun loadButtonClick(view: View){
+        presenter.loadPayment()
+    }
+
+    override fun takeLastPayment(response: Response){
+        val lastPaymentLabel = findViewById<TextView>(R.id.lastPaymentLabel)
+        lastPaymentLabel.text = response.answer
     }
 
     fun makeCappuccinoButtonClick(view: View) {

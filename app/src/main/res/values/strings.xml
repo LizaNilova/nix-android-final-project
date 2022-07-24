@@ -13,4 +13,5 @@
     <string name="paperCupsLabel">Paper cups</string>
     <string name="fillButton">FILL</string>
     <string name="takeMoneyButton">TAKE MONEY</string>
+    <string name="loadLastPaymentButton">Load the last payment</string>
 </resources>
